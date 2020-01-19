@@ -2,22 +2,180 @@
 title: "ca_supp_1"
 author: "od"
 date: "1/16/2020"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ## Loading required pacakges
 
+```{r echo=FALSE, message=FALSE}
+library(tidyverse)
+library(patchwork)
+library(skimr)
+library(scales)
+library(rhdf5)
+```
+
 
 ## Reading datasets
-
+```{r}
+h5ls("DataSets/output.hdf")
+```
 
 ## EDA 1
 
+```{r}
+h5read("DataSets/output.hdf", name = "data/axis1_label0")  -> label0
+h5read("DataSets/output.hdf", name = "data/axis1_label1")  -> label1
+h5read("DataSets/output.hdf", name = "data/axis1_level0")  -> level0
+h5read("DataSets/output.hdf", name = "data/axis1_level1")  -> level1
+h5read("DataSets/output.hdf", name = "data/block0_items")  -> items
+h5read("DataSets/output.hdf", name = "data/block0_values") -> values
+```
+
+```{r}
+label0 %>% head
+
+label1 %>% head
+level0 %>% head
+level1 %>% head
+items %>% head
+values[1:10]
+```
+
+
 ## Data wrangling
 
+```{r}
+t_values <- t(values)
+colnames(t_values) <- items
+# t_values[c(1:3), c(1:3)]
+# t_values[c(1:3), c(1380:1382)]
+draft_1 <- as_tibble(t_values)
+draft_1
+```
+
+
+## Saving the final dataset
+```{r echo=FALSE, message=FALSE}
+output_1 <- draft_1 %>% 
+  select(contains("years_"), everything()) %>% 
+  select(contains("_event_"), everything()) %>% 
+  select(contains("_cases_at_sim_"), everything()) %>% 
+  select(contains("_exposed_"), everything()) %>% 
+  select(contains("person_time"), everything()) %>% 
+  select(contains("ylls_due"), everything()) %>% 
+  select(contains("ylds_due"), everything()) %>% 
+  select(contains("death_due"), everything()) %>% 
+  gather("item", "value", 1:1373) %>% 
+  select(10, everything()) %>% 
+  mutate(item = str_replace_all(item, '20_among_', '20_sep_')) %>% 
+  mutate(item = str_replace_all(item, '21_among_', '21_sep_')) %>% 
+  mutate(item = str_replace_all(item, '22_among_', '22_sep_')) %>% 
+  mutate(item = str_replace_all(item, '23_among_', '23_sep_')) %>% 
+  mutate(item = str_replace_all(item, '24_among_', '24_sep_')) %>% 
+  mutate(item = str_replace_all(item, '_in_age_group_', '_sep_')) %>%
+  separate(item, c('item', 'item_age_group'), sep = '_sep_') %>% 
+  mutate(item = str_replace_all(item, '_exposed_in_20', '_sep2_20'))%>% 
+  separate(item, c('item', 'exposed_in'), sep = '_sep2_') %>%  
+  mutate(item = str_replace_all(item, 'gestation_cat', 'gestation_sep3_cat'))   %>% 
+  separate(item, c('item', 'lbw_sg_cat'), sep = '_sep3_') %>%
+  mutate(item = str_replace_all(item, '_among_male', '_sep4_male')) %>% 
+  mutate(item = str_replace_all(item, '_among_female', '_sep4_female')) %>% 
+  separate(item, c('item', 'gender'), sep = '_sep4_') %>% 
+  mutate(item = str_replace_all(item, 'th_due_to_', 'th_sep5_')) %>% 
+  mutate(item = str_replace_all(item, 'ds_due_to_', 'ds_sep5_')) %>% 
+  mutate(item = str_replace_all(item, 'ls_due_to_', 'ls_sep5_')) %>% 
+  separate(item, c('item', 'item_outcome'), sep = '_sep5_') 
+  
+```
+```{r}
+output_1 %>% head
+output_1 %>% select(value) %>% skim
+```
+
+```{r}
+write_csv(output_1, 'Output_Files/output_1.csv')
+```
+
+```{r}
+draft_2 <- read_csv('Output_Files/output_1.csv',
+               col_types = list(
+                 item = col_character(),
+                 item_outcome = col_character(),
+                 gender = col_character(),
+                 lbw_sg_cat = col_character(),
+                 exposed_in = col_character(),
+                 item_age_group = col_character(),
+                 total_population_untracked = col_double(),
+                 total_population_tracked = col_double(),
+                 total_population = col_double(),
+                 total_population_living = col_double(),
+                 total_population_dead = col_double(),
+                 input_draw = col_double(),
+                 random_seed = col_double(),
+                 simulation_run_time = col_double(),
+                 calcium_supplementation_intervention.proportion = col_character(),
+                 value = col_double()))
+```
 
 
 ## EDA 2
+
+```{r}
+draft_2 %>% dim
+draft_2 %>% head
+```
+
+converting to factor failed in previous step: gender, age group, calcium supplementation.
+
+```{r}
+draft_2 %>% 
+  distinct(item_age_group)
+
+lbls <- c("1_to_4", "Early neonatal", "Late neonatal" , "Post neonatal")
+
+final_dataset <- draft_2 %>% 
+  mutate(gender = factor(gender, 
+                         labels = c('Female', 'Male'))) %>% 
+  mutate(age_group = factor(item_age_group,
+                                 labels = lbls)) %>% 
+  mutate(ca_supp = factor(calcium_supplementation_intervention.proportion,
+                          labels = c('NO', 'YES')))
+write_csv(final_dataset, 'Output_Files/final_dataset.csv')
+
+```
+
+## Example of plot  #############
+```{r fig.width=7}
+final_dataset %>% 
+  filter(item =='death') %>% 
+  filter(item_outcome == 'neonatal_preterm_birth') %>% 
+  filter(item_age_group %in% c('early_neonatal',
+                               'late_neonatal')) %>%
+  ggplot(aes(value,
+             color = ca_supp,
+             fill = ca_supp))+
+  geom_density(size = 1, alpha = .3)+
+  facet_wrap(gender ~ age_group, scales = 'free',
+             strip.position = 'bottom')+
+  labs(title = 'Death due to neonatal preterm birth',
+       subtitle = 'By age-group and by gender\n\n',
+       color = 'Calcium \nSupplementation',
+       x = '')+
+  guides(fill = FALSE)+
+  theme_bw()+
+  scale_color_manual(values = c('firebrick', 'darkgreen'))+
+  theme(legend.position = c(.9,1.055),
+        legend.direction = 'horizontal',
+        strip.text = element_text(size = 10),
+        axis.text.y = element_blank(),
+        plot.title = element_text(face = 'bold', size = 15),
+        panel.background = element_rect(colour = 'black'))
+```
+
+
 
 
 
