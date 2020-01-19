@@ -58,7 +58,7 @@ draft_1
 
 
 ## Saving the final dataset
-```{r echo=FALSE, message=FALSE}
+```{r message=FALSE, warning=FALSE}
 output_1 <- draft_1 %>% 
   select(contains("years_"), everything()) %>% 
   select(contains("_event_"), everything()) %>% 
@@ -90,6 +90,7 @@ output_1 <- draft_1 %>%
   separate(item, c('item', 'item_outcome'), sep = '_sep5_') 
   
 ```
+
 ```{r}
 output_1 %>% head
 output_1 %>% select(value) %>% skim
@@ -128,7 +129,7 @@ draft_2 %>% dim
 draft_2 %>% head
 ```
 
-converting to factor failed in previous step: gender, age group, calcium supplementation.
+Converting to factor failed in previous step: gender, age group, calcium supplementation.
 
 ```{r}
 draft_2 %>% 
@@ -148,7 +149,7 @@ write_csv(final_dataset, 'Output_Files/final_dataset.csv')
 ```
 
 ## Example of plot  #############
-```{r fig.width=7}
+```{r fig.width=8, fig.align='center'}
 final_dataset %>% 
   filter(item =='death') %>% 
   filter(item_outcome == 'neonatal_preterm_birth') %>% 
