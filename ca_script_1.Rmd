@@ -144,9 +144,13 @@ final_dataset <- draft_2 %>%
                                  labels = lbls)) %>% 
   mutate(ca_supp = factor(calcium_supplementation_intervention.proportion,
                           labels = c('NO', 'YES')))
-write_csv(final_dataset, 'Output_Files/final_dataset.csv')
 
 ```
+
+```{r}
+write_csv(final_dataset, 'Output_Files/final_dataset.csv')
+```
+
 
 ## Example of plot  #############
 ```{r fig.width=8, fig.align='center'}
@@ -176,7 +180,51 @@ final_dataset %>%
         panel.background = element_rect(colour = 'black'))
 ```
 
+#### rerun draft_2 to get final dataset for the following steps
 
 
+```{r}
+final_dataset %>% glimpse()
+```
 
+# using the person years columns to transform counts to rates
+
+```{r}
+final_dataset %>% head
+```
+
+```{r}
+final_dataset %>% 
+  count(item)
+```
+
+
+```{r}
+final_dataset %>% 
+  filter(item == 'death') %>% 
+  mutate(living = 100 * (total_population_living / total_population_tracked),
+            dead = 100 * (total_population_dead / total_population_tracked)) %>% 
+  select(item, ca_supp, living, dead) %>% 
+  gather(cat, pct, c(3,4)) %>% 
+  ggplot(aes(pct, color = ca_supp))+
+  geom_density()+
+  facet_wrap(~ cat, scales = 'free')+
+  labs(x = 'Percentage')+
+  theme_bw()
+  
+```
+
+
+```{r}
+final_dataset %>% 
+  filter(item == 'death') %>% 
+  select(item, ca_supp, total_population_living, total_population_dead) %>% 
+  gather(population, count, c(3,4)) %>% 
+  group_by(ca_supp, population) %>% 
+  summarise(average = mean(count)) %>% 
+  ggplot(aes(population, average, fill = ca_supp))+
+  geom_col(position = 'dodge')+
+  facet_wrap(~ population, scales = 'free')
+
+```
 
