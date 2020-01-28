@@ -187,7 +187,7 @@ final_dataset %>%
 final_dataset %>% glimpse()
 ```
 
-# using the person years columns to transform counts to rates
+# dead and living / tracked
 
 ```{r}
 final_dataset %>% head
@@ -227,4 +227,43 @@ final_dataset %>%
   facet_wrap(~ population, scales = 'free')
 
 ```
+
+
+
+### crude death rate
+final_dataset %>% dim()
+
+
+```{r}
+crude_rate <- final_dataset %>% 
+  filter(item == 'person_time') %>% 
+  mutate(crude_death_rate_per_100000 = (total_population_dead / total_population_tracked)* 100000) %>% 
+  select(item, gender, item_age_group,total_population_dead, total_population_tracked, crude_death_rate_per_100000, ca_supp)
+
+crude_rate %>% 
+  group_by(ca_supp) %>% 
+  summarise(total_population_dead = sum(total_population_dead))   # Something tells me this is wrong 
+
+crude_rate %>% 
+  ggplot(aes(crude_death_rate_per_100000, 
+             color = ca_supp))+
+  geom_density()+
+  facet_grid(gender ~ item_age_group)+
+  theme_light()+
+  scale_x_continuous(breaks = c(10000, 12000, 14000))+
+  scale_y_continuous(labels = label_number())+
+  labs(title = 'Crude Death Rate per 100 000', 
+       color = 'Calcium',
+       x='')+
+  theme(plot.title = element_text(size = 20),
+        axis.text.x = element_text(angle = 45, 
+                                   hjust = 1),
+        legend.position = 'bottom')
+
+```
+
+
+
+
+
 
