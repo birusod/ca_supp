@@ -1,4 +1,4 @@
 # ca_supp
 Calcium Supplementation 
 
-Creating a repository and share results
+I am creating this project to make it easier to share my scripts
