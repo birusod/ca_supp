@@ -145,7 +145,7 @@ output_1 <- draft_1 %>%
   
 ```
 
-Not all elements in 'item' column can gender ot age group be extracted, which explains all the NA in those new columns.
+Not all elements in 'item' column can be separateed in gender / age group.  For somes elements, there no gender or age group, which explains all the NA in those new columns.
 
 What I was not expecting is to have NAs in the 'value' column. They are all in one item type 
 (See the tbl_df ot next section)
@@ -270,7 +270,8 @@ final_dataset %>% count(item)
 
 
 ### crude death rate: 
-I thouhgt this is the way to calculate CDR by first selecting only person_time rows
+
+I thouhgt this is the way to calculate CDR by first, selecting only person_time rows...
 
 
 ```{r}
@@ -283,7 +284,7 @@ crude_rate <- final_dataset %>%
 
 ```
 
-And then try to plot CDR density plot by calcium supp, gender and age groups. 
+..and then try to plot CDR density plot by calcium supp, gender and age groups. 
 
 ```{r}
 crude_rate %>% 
