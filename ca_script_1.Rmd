@@ -245,7 +245,7 @@ final_dataset %>%
   guides(fill = FALSE)+
   theme_bw()+
   scale_color_manual(values = c('firebrick', 'darkgreen'))+
-  theme(legend.position = c(.9,1.055),
+  theme(legend.position = c(.9,1.065),
         legend.direction = 'horizontal',
         strip.text = element_text(size = 10),
         axis.text.y = element_blank(),
