@@ -7,7 +7,7 @@ output:
   pdf_document: default
 ---
 
-## Loading required pacakges
+## Loading required pacakges to laod datasets, manipulate and explore some outputs
 
 ```{r echo=FALSE, message=FALSE}
 library(tidyverse)
@@ -18,14 +18,20 @@ library(rhdf5)
 ```
 
 
-## Reading datasets
+## Reading datasets in R with h5ls 
 ```{r}
 h5ls("DataSets/output.hdf")
 ```
 
-## EDA 1
+## EDA 1: 
+* The first file (renamed here 'axis_0') and the 'items' file are similar with dimensions = 1382
+* Files label0, label1, level0 and level1 have 3998, 3998, 200 and 10 elements respectivily.
+* files renamed here 'values' is the only one in array shape with dimensions (1382, 3998)
+
+Question: how are the 4 files [label0, label1, level0 and level1] related to the other files?
 
 ```{r}
+h5read("DataSets/output.hdf", name = "data/axis0")  -> axis_0
 h5read("DataSets/output.hdf", name = "data/axis1_label0")  -> label0
 h5read("DataSets/output.hdf", name = "data/axis1_label1")  -> label1
 h5read("DataSets/output.hdf", name = "data/axis1_level0")  -> level0
@@ -34,9 +40,21 @@ h5read("DataSets/output.hdf", name = "data/block0_items")  -> items
 h5read("DataSets/output.hdf", name = "data/block0_values") -> values
 ```
 
-```{r}
-label0 %>% head
 
+
+```{r}
+axis_0 %>% dim()
+label0 %>% dim()
+label1 %>% dim()
+level0 %>% dim()
+level1 %>% dim()
+items %>% dim()
+values %>% dim()
+```
+
+```{r}
+axis_0 %>% head
+label0 %>% head
 label1 %>% head
 level0 %>% head
 level1 %>% head
@@ -44,20 +62,46 @@ items %>% head
 values[1:10]
 ```
 
+## Data wrangling process: 
+* After viewing the file in PYTHON, I realised that 'items' file contains the rows names from the orginal dataset. 
+* That is what I tried to replicate in the following section using only values file and items file.
+    * first step: transpose the array (rows-to-columns)
+    * second step: add 'items' containt as columns names
+* output: draft_1
+  
 
-## Data wrangling
+### 
 
 ```{r}
 t_values <- t(values)
 colnames(t_values) <- items
-# t_values[c(1:3), c(1:3)]
-# t_values[c(1:3), c(1380:1382)]
+t_values[c(1:3), c(1:3)]
+t_values[c(1:3), c(1380:1382)]
 draft_1 <- as_tibble(t_values)
 draft_1
 ```
 
 
-## Saving the final dataset
+## Saving the final dataset:
+  * Getting the output_1 file took few steps:
+  * step-1: grouping 9 columns (listed here) and gathering all the rest in one column 'item'.
+      total_population_untracked                     
+      total_population_tracked                       
+      total_population                              
+      total_population_living                        
+      total_population_dead                          
+      input_draw                                     
+      random_seed                                    
+      simulation_run_time                           
+      calcium_supplementation_intervention.proportion
+  * step-2: 
+      - seperating gender, age_group ('item_age_group) where relevent
+      - separating item and outcome/risk into: [item, item_outcome]
+      - separate cat## and exposure year form low_birth_weight_and_short_gestation
+        question: is it that useful for analysis?
+        
+
+
 ```{r message=FALSE, warning=FALSE}
 output_1 <- draft_1 %>% 
   select(contains("years_"), everything()) %>% 
@@ -76,25 +120,56 @@ output_1 <- draft_1 %>%
   mutate(item = str_replace_all(item, '23_among_', '23_sep_')) %>% 
   mutate(item = str_replace_all(item, '24_among_', '24_sep_')) %>% 
   mutate(item = str_replace_all(item, '_in_age_group_', '_sep_')) %>%
-  separate(item, c('item', 'item_age_group'), sep = '_sep_') %>% 
+  separate(item, 
+           c('item', 'item_age_group'), 
+           sep = '_sep_') %>% 
   mutate(item = str_replace_all(item, '_exposed_in_20', '_sep2_20'))%>% 
-  separate(item, c('item', 'exposed_in'), sep = '_sep2_') %>%  
+  separate(item, 
+           c('item', 'exposed_in'), 
+           sep = '_sep2_') %>%  
   mutate(item = str_replace_all(item, 'gestation_cat', 'gestation_sep3_cat'))   %>% 
-  separate(item, c('item', 'lbw_sg_cat'), sep = '_sep3_') %>%
+  separate(item, 
+           c('item', 'lbw_sg_cat'), 
+           sep = '_sep3_') %>%
   mutate(item = str_replace_all(item, '_among_male', '_sep4_male')) %>% 
   mutate(item = str_replace_all(item, '_among_female', '_sep4_female')) %>% 
-  separate(item, c('item', 'gender'), sep = '_sep4_') %>% 
+  separate(item, 
+           c('item', 'gender'), 
+           sep = '_sep4_') %>% 
   mutate(item = str_replace_all(item, 'th_due_to_', 'th_sep5_')) %>% 
   mutate(item = str_replace_all(item, 'ds_due_to_', 'ds_sep5_')) %>% 
   mutate(item = str_replace_all(item, 'ls_due_to_', 'ls_sep5_')) %>% 
-  separate(item, c('item', 'item_outcome'), sep = '_sep5_') 
+  separate(item, 
+           c('item', 'item_outcome'), 
+           sep = '_sep5_') 
   
 ```
+
+Not all elements in 'item' column can gender ot age group be extracted, which explains all the NA in those new columns.
+
+What I was not expecting is to have NAs in the 'value' column. They are all in one item type 
+(See the tbl_df ot next section)
 
 ```{r}
 output_1 %>% head
 output_1 %>% select(value) %>% skim
+output_1 %>% filter(is.na(value)) 
 ```
+
+
+NAs: Almost half of 'low_birth_weight_and_short_gestation' in item column have corresponding NAs in 
+      value column.
+
+```{r}
+output_1%>% 
+  group_by(item) %>% 
+  summarise(pct = mean(is.na(value)) * 100) %>% 
+  arrange(desc(pct)) 
+```
+
+## Saving output_1 files:
+ * you can save the file by replacing 'Output_Files/' with the current directory.
+ * can ignore this part [saving output_1.csv] for space/time sake and just run the rest of the code
 
 ```{r}
 write_csv(output_1, 'Output_Files/output_1.csv')
@@ -122,14 +197,8 @@ draft_2 <- read_csv('Output_Files/output_1.csv',
 ```
 
 
-## EDA 2
 
-```{r}
-draft_2 %>% dim
-draft_2 %>% head
-```
-
-Converting to factor failed in previous step: gender, age group, calcium supplementation.
+Converting to factor: gender, age group, calcium supplementation and reproducing the ealier graph
 
 ```{r}
 draft_2 %>% 
@@ -147,6 +216,11 @@ final_dataset <- draft_2 %>%
 
 ```
 
+
+## Saving final_dataset:
+ * you can save the file by replacing 'Output_Files/' with the current directory.
+ * can ignore this part [saving final_dataset.csv] for space/time sake and just run the rest of the code
+
 ```{r}
 write_csv(final_dataset, 'Output_Files/final_dataset.csv')
 ```
@@ -163,12 +237,11 @@ final_dataset %>%
              color = ca_supp,
              fill = ca_supp))+
   geom_density(size = 1, alpha = .3)+
-  facet_wrap(gender ~ age_group, scales = 'free',
-             strip.position = 'bottom')+
+  facet_grid(gender ~ age_group, scales = 'free')+
   labs(title = 'Death due to neonatal preterm birth',
        subtitle = 'By age-group and by gender\n\n',
        color = 'Calcium \nSupplementation',
-       x = '')+
+       x = '', y = '')+
   guides(fill = FALSE)+
   theme_bw()+
   scale_color_manual(values = c('firebrick', 'darkgreen'))+
@@ -187,63 +260,32 @@ final_dataset %>%
 final_dataset %>% glimpse()
 ```
 
-# dead and living / tracked
-
 ```{r}
 final_dataset %>% head
 ```
 
 ```{r}
-final_dataset %>% 
-  count(item)
+final_dataset %>% count(item)
 ```
 
 
-```{r}
-final_dataset %>% 
-  filter(item == 'death') %>% 
-  mutate(living = 100 * (total_population_living / total_population_tracked),
-            dead = 100 * (total_population_dead / total_population_tracked)) %>% 
-  select(item, ca_supp, living, dead) %>% 
-  gather(cat, pct, c(3,4)) %>% 
-  ggplot(aes(pct, color = ca_supp))+
-  geom_density()+
-  facet_wrap(~ cat, scales = 'free')+
-  labs(x = 'Percentage')+
-  theme_bw()
-  
-```
-
-
-```{r}
-final_dataset %>% 
-  filter(item == 'death') %>% 
-  select(item, ca_supp, total_population_living, total_population_dead) %>% 
-  gather(population, count, c(3,4)) %>% 
-  group_by(ca_supp, population) %>% 
-  summarise(average = mean(count)) %>% 
-  ggplot(aes(population, average, fill = ca_supp))+
-  geom_col(position = 'dodge')+
-  facet_wrap(~ population, scales = 'free')
-
-```
-
-
-
-### crude death rate
-final_dataset %>% dim()
+### crude death rate: 
+I thouhgt this is the way to calculate CDR by first selecting only person_time rows
 
 
 ```{r}
 crude_rate <- final_dataset %>% 
   filter(item == 'person_time') %>% 
   mutate(crude_death_rate_per_100000 = (total_population_dead / total_population_tracked)* 100000) %>% 
-  select(item, gender, item_age_group,total_population_dead, total_population_tracked, crude_death_rate_per_100000, ca_supp)
+  select(item, gender, item_age_group,
+         total_population_dead, total_population_tracked, 
+         crude_death_rate_per_100000, ca_supp)
 
-crude_rate %>% 
-  group_by(ca_supp) %>% 
-  summarise(total_population_dead = sum(total_population_dead))   # Something tells me this is wrong 
+```
 
+And then try to plot CDR density plot by calcium supp, gender and age groups. 
+
+```{r}
 crude_rate %>% 
   ggplot(aes(crude_death_rate_per_100000, 
              color = ca_supp))+
@@ -252,16 +294,15 @@ crude_rate %>%
   theme_light()+
   scale_x_continuous(breaks = c(10000, 12000, 14000))+
   scale_y_continuous(labels = label_number())+
-  labs(title = 'Crude Death Rate per 100 000', 
+  labs(title = 'Crude Death Rate per 100 000',
+       subtitle = 'By gender and age group',
        color = 'Calcium',
        x='')+
   theme(plot.title = element_text(size = 20),
         axis.text.x = element_text(angle = 45, 
                                    hjust = 1),
         legend.position = 'bottom')
-
 ```
-
 
 
 
