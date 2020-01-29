@@ -75,6 +75,9 @@
 \newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
 \newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
 \newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs}
+% Fix footnotes in tables (requires footnote package)
+\IfFileExists{footnote.sty}{\usepackage{footnote}\makesavenoteenv{longtable}}{}
 \usepackage{graphicx,grffile}
 \makeatletter
 \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
@@ -111,11 +114,14 @@
 \begin{document}
 \maketitle
 
-\hypertarget{loading-required-pacakges}{%
-\subsection{Loading required pacakges}\label{loading-required-pacakges}}
+\hypertarget{loading-required-pacakges-to-laod-datasets-manipulate-and-explore-some-outputs}{%
+\subsection{Loading required pacakges to laod datasets, manipulate and
+explore some
+outputs}\label{loading-required-pacakges-to-laod-datasets-manipulate-and-explore-some-outputs}}
 
-\hypertarget{reading-datasets}{%
-\subsection{Reading datasets}\label{reading-datasets}}
+\hypertarget{reading-datasets-in-r-with-h5ls}{%
+\subsection{Reading datasets in R with
+h5ls}\label{reading-datasets-in-r-with-h5ls}}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -136,10 +142,27 @@
 \end{verbatim}
 
 \hypertarget{eda-1}{%
-\subsection{EDA 1}\label{eda-1}}
+\subsection{EDA 1:}\label{eda-1}}
+
+\begin{itemize}
+\tightlist
+\item
+  The first file (renamed here `axis\_0') and the `items' file are
+  similar with dimensions = 1382
+\item
+  Files label0, label1, level0 and level1 have 3998, 3998, 200 and 10
+  elements respectivily.
+\item
+  files renamed here `values' is the only one in array shape with
+  dimensions (1382, 3998)
+\end{itemize}
+
+Question: how are the 4 files {[}label0, label1, level0 and level1{]}
+related to the other files?
 
 \begin{Shaded}
 \begin{Highlighting}[]
+\KeywordTok{h5read}\NormalTok{(}\StringTok{"DataSets/output.hdf"}\NormalTok{, }\DataTypeTok{name =} \StringTok{"data/axis0"}\NormalTok{)  ->}\StringTok{ }\NormalTok{axis_}\DecValTok{0}
 \KeywordTok{h5read}\NormalTok{(}\StringTok{"DataSets/output.hdf"}\NormalTok{, }\DataTypeTok{name =} \StringTok{"data/axis1_label0"}\NormalTok{)  ->}\StringTok{ }\NormalTok{label0}
 \KeywordTok{h5read}\NormalTok{(}\StringTok{"DataSets/output.hdf"}\NormalTok{, }\DataTypeTok{name =} \StringTok{"data/axis1_label1"}\NormalTok{)  ->}\StringTok{ }\NormalTok{label1}
 \KeywordTok{h5read}\NormalTok{(}\StringTok{"DataSets/output.hdf"}\NormalTok{, }\DataTypeTok{name =} \StringTok{"data/axis1_level0"}\NormalTok{)  ->}\StringTok{ }\NormalTok{level0}
@@ -148,6 +171,91 @@
 \KeywordTok{h5read}\NormalTok{(}\StringTok{"DataSets/output.hdf"}\NormalTok{, }\DataTypeTok{name =} \StringTok{"data/block0_values"}\NormalTok{) ->}\StringTok{ }\NormalTok{values}
 \end{Highlighting}
 \end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{axis_}\DecValTok{0} \OperatorTok{%>%}\StringTok{ }\KeywordTok{dim}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1382
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{label0 }\OperatorTok{%>%}\StringTok{ }\KeywordTok{dim}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3998
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{label1 }\OperatorTok{%>%}\StringTok{ }\KeywordTok{dim}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3998
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{level0 }\OperatorTok{%>%}\StringTok{ }\KeywordTok{dim}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 200
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{level1 }\OperatorTok{%>%}\StringTok{ }\KeywordTok{dim}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 10
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{items }\OperatorTok{%>%}\StringTok{ }\KeywordTok{dim}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1382
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{values }\OperatorTok{%>%}\StringTok{ }\KeywordTok{dim}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1382 3998
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{axis_}\DecValTok{0} \OperatorTok{%>%}\StringTok{ }\NormalTok{head}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "total_population_untracked"                                                  
+## [2] "total_population_tracked"                                                    
+## [3] "total_population"                                                            
+## [4] "death_due_to_neonatal_preterm_birth_among_male_in_age_group_early_neonatal"  
+## [5] "death_due_to_neonatal_preterm_birth_among_female_in_age_group_early_neonatal"
+## [6] "death_due_to_neonatal_preterm_birth_among_male_in_age_group_late_neonatal"
+\end{verbatim}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -214,15 +322,66 @@
 ##  [1]  9623 12221 21844   120    74     4     7     2     2     0
 \end{verbatim}
 
-\hypertarget{data-wrangling}{%
-\subsection{Data wrangling}\label{data-wrangling}}
+\hypertarget{data-wrangling-process}{%
+\subsection{Data wrangling process:}\label{data-wrangling-process}}
+
+\begin{itemize}
+\tightlist
+\item
+  After viewing the file in PYTHON, I realised that `items' file
+  contains the rows names from the orginal dataset.
+\item
+  That is what I tried to replicate in the following section using only
+  values file and items file.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    first step: transpose the array (rows-to-columns)
+  \item
+    second step: add `items' containt as columns names
+  \end{itemize}
+\item
+  output: draft\_1
+\end{itemize}
+
+\hypertarget{section}{%
+\subsubsection{}\label{section}}
 
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{t_values <-}\StringTok{ }\KeywordTok{t}\NormalTok{(values)}
 \KeywordTok{colnames}\NormalTok{(t_values) <-}\StringTok{ }\NormalTok{items}
-\CommentTok{# t_values[c(1:3), c(1:3)]}
-\CommentTok{# t_values[c(1:3), c(1380:1382)]}
+\NormalTok{t_values[}\KeywordTok{c}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\DecValTok{3}\NormalTok{), }\KeywordTok{c}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\DecValTok{3}\NormalTok{)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      total_population_untracked total_population_tracked total_population
+## [1,]                       9623                    12221            21844
+## [2,]                       9561                    12061            21622
+## [3,]                       9626                    12081            21707
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{t_values[}\KeywordTok{c}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\DecValTok{3}\NormalTok{), }\KeywordTok{c}\NormalTok{(}\DecValTok{1380}\OperatorTok{:}\DecValTok{1382}\NormalTok{)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      low_birth_weight_and_short_gestation_cat212_exposed_in_2024_among_1_to_4
+## [1,]                                                                      NaN
+## [2,]                                                                        2
+## [3,]                                                                      NaN
+##      simulation_run_time calcium_supplementation_intervention.proportion
+## [1,]            9960.960                                               0
+## [2,]            9948.302                                               1
+## [3,]           10118.156                                               1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
 \NormalTok{draft_}\DecValTok{1}\NormalTok{ <-}\StringTok{ }\KeywordTok{as_tibble}\NormalTok{(t_values)}
 \NormalTok{draft_}\DecValTok{1}
 \end{Highlighting}
@@ -345,7 +504,38 @@
 \end{verbatim}
 
 \hypertarget{saving-the-final-dataset}{%
-\subsection{Saving the final dataset}\label{saving-the-final-dataset}}
+\subsection{Saving the final dataset:}\label{saving-the-final-dataset}}
+
+\begin{itemize}
+\tightlist
+\item
+  Getting the output\_1 file took few steps:
+\item
+  step-1: grouping 9 columns (listed here) and gathering all the rest in
+  one column `item'. total\_population\_untracked\\
+  total\_population\_tracked\\
+  total\_population\\
+  total\_population\_living\\
+  total\_population\_dead\\
+  input\_draw\\
+  random\_seed\\
+  simulation\_run\_time\\
+  calcium\_supplementation\_intervention.proportion
+\item
+  step-2:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    seperating gender, age\_group ('item\_age\_group) where relevent
+  \item
+    separating item and outcome/risk into: {[}item, item\_outcome{]}
+  \item
+    separate cat\#\# and exposure year form
+    low\_birth\_weight\_and\_short\_gestation question: is it that
+    useful for analysis?
+  \end{itemize}
+\end{itemize}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -366,49 +556,37 @@
 \StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{item =} \KeywordTok{str_replace_all}\NormalTok{(item, }\StringTok{'23_among_'}\NormalTok{, }\StringTok{'23_sep_'}\NormalTok{)) }\OperatorTok{%>%}\StringTok{ }
 \StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{item =} \KeywordTok{str_replace_all}\NormalTok{(item, }\StringTok{'24_among_'}\NormalTok{, }\StringTok{'24_sep_'}\NormalTok{)) }\OperatorTok{%>%}\StringTok{ }
 \StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{item =} \KeywordTok{str_replace_all}\NormalTok{(item, }\StringTok{'_in_age_group_'}\NormalTok{, }\StringTok{'_sep_'}\NormalTok{)) }\OperatorTok{%>%}
-\StringTok{  }\KeywordTok{separate}\NormalTok{(item, }\KeywordTok{c}\NormalTok{(}\StringTok{'item'}\NormalTok{, }\StringTok{'item_age_group'}\NormalTok{), }\DataTypeTok{sep =} \StringTok{'_sep_'}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{separate}\NormalTok{(item, }
+           \KeywordTok{c}\NormalTok{(}\StringTok{'item'}\NormalTok{, }\StringTok{'item_age_group'}\NormalTok{), }
+           \DataTypeTok{sep =} \StringTok{'_sep_'}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }
 \StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{item =} \KeywordTok{str_replace_all}\NormalTok{(item, }\StringTok{'_exposed_in_20'}\NormalTok{, }\StringTok{'_sep2_20'}\NormalTok{))}\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{separate}\NormalTok{(item, }\KeywordTok{c}\NormalTok{(}\StringTok{'item'}\NormalTok{, }\StringTok{'exposed_in'}\NormalTok{), }\DataTypeTok{sep =} \StringTok{'_sep2_'}\NormalTok{) }\OperatorTok{%>%}\StringTok{  }
+\StringTok{  }\KeywordTok{separate}\NormalTok{(item, }
+           \KeywordTok{c}\NormalTok{(}\StringTok{'item'}\NormalTok{, }\StringTok{'exposed_in'}\NormalTok{), }
+           \DataTypeTok{sep =} \StringTok{'_sep2_'}\NormalTok{) }\OperatorTok{%>%}\StringTok{  }
 \StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{item =} \KeywordTok{str_replace_all}\NormalTok{(item, }\StringTok{'gestation_cat'}\NormalTok{, }\StringTok{'gestation_sep3_cat'}\NormalTok{))   }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{separate}\NormalTok{(item, }\KeywordTok{c}\NormalTok{(}\StringTok{'item'}\NormalTok{, }\StringTok{'lbw_sg_cat'}\NormalTok{), }\DataTypeTok{sep =} \StringTok{'_sep3_'}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{separate}\NormalTok{(item, }
+           \KeywordTok{c}\NormalTok{(}\StringTok{'item'}\NormalTok{, }\StringTok{'lbw_sg_cat'}\NormalTok{), }
+           \DataTypeTok{sep =} \StringTok{'_sep3_'}\NormalTok{) }\OperatorTok{%>%}
 \StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{item =} \KeywordTok{str_replace_all}\NormalTok{(item, }\StringTok{'_among_male'}\NormalTok{, }\StringTok{'_sep4_male'}\NormalTok{)) }\OperatorTok{%>%}\StringTok{ }
 \StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{item =} \KeywordTok{str_replace_all}\NormalTok{(item, }\StringTok{'_among_female'}\NormalTok{, }\StringTok{'_sep4_female'}\NormalTok{)) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{separate}\NormalTok{(item, }\KeywordTok{c}\NormalTok{(}\StringTok{'item'}\NormalTok{, }\StringTok{'gender'}\NormalTok{), }\DataTypeTok{sep =} \StringTok{'_sep4_'}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{separate}\NormalTok{(item, }
+           \KeywordTok{c}\NormalTok{(}\StringTok{'item'}\NormalTok{, }\StringTok{'gender'}\NormalTok{), }
+           \DataTypeTok{sep =} \StringTok{'_sep4_'}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }
 \StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{item =} \KeywordTok{str_replace_all}\NormalTok{(item, }\StringTok{'th_due_to_'}\NormalTok{, }\StringTok{'th_sep5_'}\NormalTok{)) }\OperatorTok{%>%}\StringTok{ }
 \StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{item =} \KeywordTok{str_replace_all}\NormalTok{(item, }\StringTok{'ds_due_to_'}\NormalTok{, }\StringTok{'ds_sep5_'}\NormalTok{)) }\OperatorTok{%>%}\StringTok{ }
 \StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{item =} \KeywordTok{str_replace_all}\NormalTok{(item, }\StringTok{'ls_due_to_'}\NormalTok{, }\StringTok{'ls_sep5_'}\NormalTok{)) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{separate}\NormalTok{(item, }\KeywordTok{c}\NormalTok{(}\StringTok{'item'}\NormalTok{, }\StringTok{'item_outcome'}\NormalTok{), }\DataTypeTok{sep =} \StringTok{'_sep5_'}\NormalTok{) }
+\StringTok{  }\KeywordTok{separate}\NormalTok{(item, }
+           \KeywordTok{c}\NormalTok{(}\StringTok{'item'}\NormalTok{, }\StringTok{'item_outcome'}\NormalTok{), }
+           \DataTypeTok{sep =} \StringTok{'_sep5_'}\NormalTok{) }
 \end{Highlighting}
 \end{Shaded}
 
-\begin{verbatim}
-## Warning: Expected 2 pieces. Missing pieces filled with `NA` in 83958 rows
-## [5405297, 5405298, 5405299, 5405300, 5405301, 5405302, 5405303, 5405304,
-## 5405305, 5405306, 5405307, 5405308, 5405309, 5405310, 5405311, 5405312, 5405313,
-## 5405314, 5405315, 5405316, ...].
-\end{verbatim}
+Not all elements in `item' column can be separateed in gender / age
+group. For somes elements, there no gender or age group, which explains
+all the NA in those new columns.
 
-\begin{verbatim}
-## Warning: Expected 2 pieces. Missing pieces filled with `NA` in 851574 rows [1,
-## 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...].
-
-## Warning: Expected 2 pieces. Missing pieces filled with `NA` in 851574 rows [1,
-## 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...].
-\end{verbatim}
-
-\begin{verbatim}
-## Warning: Expected 2 pieces. Missing pieces filled with `NA` in 4721638 rows
-## [767617, 767618, 767619, 767620, 767621, 767622, 767623, 767624, 767625,
-## 767626, 767627, 767628, 767629, 767630, 767631, 767632, 767633, 767634, 767635,
-## 767636, ...].
-\end{verbatim}
-
-\begin{verbatim}
-## Warning: Expected 2 pieces. Missing pieces filled with `NA` in 4753622 rows
-## [735633, 735634, 735635, 735636, 735637, 735638, 735639, 735640, 735641,
-## 735642, 735643, 735644, 735645, 735646, 735647, 735648, 735649, 735650, 735651,
-## 735652, ...].
-\end{verbatim}
+What I was not expecting is to have NAs in the `value' column. They are
+all in one item type (See the tbl\_df ot next section)
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -435,13 +613,117 @@
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\KeywordTok{write_csv}\NormalTok{(output_}\DecValTok{1}\NormalTok{, }\StringTok{'DataSets/output_1.csv'}\NormalTok{)}
+\NormalTok{output_}\DecValTok{1} \OperatorTok{%>%}\StringTok{ }\KeywordTok{select}\NormalTok{(value) }\OperatorTok{%>%}\StringTok{ }\NormalTok{skim}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}ll@{}}
+\caption{Data summary}\tabularnewline
+\toprule
+\endhead
+Name & Piped data\tabularnewline
+Number of rows & 5489254\tabularnewline
+Number of columns & 1\tabularnewline
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ &\tabularnewline
+Column type frequency: &\tabularnewline
+numeric & 1\tabularnewline
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ &\tabularnewline
+Group variables & None\tabularnewline
+\bottomrule
+\end{longtable}
+
+\textbf{Variable type: numeric}
+
+\begin{longtable}[]{@{}lrrrrrrrrrl@{}}
+\toprule
+skim\_variable & n\_missing & complete\_rate & mean & sd & p0 & p25 &
+p50 & p75 & p100 & hist\tabularnewline
+\midrule
+\endhead
+value & 1806953 & 0.67 & 541.62 & 5431.29 & 0 & 2 & 7 & 28 & 165541.1 &
+▇▁▁▁▁\tabularnewline
+\bottomrule
+\end{longtable}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{output_}\DecValTok{1} \OperatorTok{%>%}\StringTok{ }\KeywordTok{filter}\NormalTok{(}\KeywordTok{is.na}\NormalTok{(value)) }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 1,806,953 x 16
+##    item  item_outcome gender lbw_sg_cat exposed_in item_age_group
+##    <chr> <chr>        <chr>  <chr>      <chr>      <chr>         
+##  1 low_~ <NA>         <NA>   cat2       2020       early_neonatal
+##  2 low_~ <NA>         <NA>   cat2       2020       early_neonatal
+##  3 low_~ <NA>         <NA>   cat2       2020       early_neonatal
+##  4 low_~ <NA>         <NA>   cat2       2020       early_neonatal
+##  5 low_~ <NA>         <NA>   cat2       2020       early_neonatal
+##  6 low_~ <NA>         <NA>   cat2       2020       early_neonatal
+##  7 low_~ <NA>         <NA>   cat2       2020       early_neonatal
+##  8 low_~ <NA>         <NA>   cat2       2020       early_neonatal
+##  9 low_~ <NA>         <NA>   cat2       2020       early_neonatal
+## 10 low_~ <NA>         <NA>   cat2       2020       early_neonatal
+## # ... with 1,806,943 more rows, and 10 more variables:
+## #   total_population_untracked <dbl>, total_population_tracked <dbl>,
+## #   total_population <dbl>, total_population_living <dbl>,
+## #   total_population_dead <dbl>, input_draw <dbl>, random_seed <dbl>,
+## #   simulation_run_time <dbl>,
+## #   calcium_supplementation_intervention.proportion <dbl>, value <dbl>
+\end{verbatim}
+
+NAs: Almost half of `low\_birth\_weight\_and\_short\_gestation' in item
+column have corresponding NAs in value column.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{output_}\DecValTok{1}\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{group_by}\NormalTok{(item) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{summarise}\NormalTok{(}\DataTypeTok{pct =} \KeywordTok{mean}\NormalTok{(}\KeywordTok{is.na}\NormalTok{(value)) }\OperatorTok{*}\StringTok{ }\DecValTok{100}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{arrange}\NormalTok{(}\KeywordTok{desc}\NormalTok{(pct)) }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 26 x 2
+##    item                                                                      pct
+##    <chr>                                                                   <dbl>
+##  1 low_birth_weight_and_short_gestation                                     39.0
+##  2 death                                                                     0  
+##  3 diarrheal_diseases_event_count                                            0  
+##  4 diarrheal_diseases_prevalent_cases_at_sim_end                             0  
+##  5 hemolytic_disease_and_other_neonatal_jaundice_event_count                 0  
+##  6 hemolytic_disease_and_other_neonatal_jaundice_prevalent_cases_at_sim_e~   0  
+##  7 lower_respiratory_infections_event_count                                  0  
+##  8 lower_respiratory_infections_prevalent_cases_at_sim_end                   0  
+##  9 measles_event_count                                                       0  
+## 10 measles_prevalent_cases_at_sim_end                                        0  
+## # ... with 16 more rows
+\end{verbatim}
+
+\hypertarget{saving-output_1-files}{%
+\subsection{Saving output\_1 files:}\label{saving-output_1-files}}
+
+\begin{itemize}
+\tightlist
+\item
+  you can save the file by replacing `Output\_Files/' with the current
+  directory.
+\item
+  can ignore this part {[}saving output\_1.csv{]} for space/time sake
+  and just run the rest of the code
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{write_csv}\NormalTok{(output_}\DecValTok{1}\NormalTok{, }\StringTok{'Output_Files/output_1.csv'}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{final_dataset <-}\StringTok{ }\KeywordTok{read_csv}\NormalTok{(}\StringTok{'DataSets/output_1.csv'}\NormalTok{,}
+\NormalTok{draft_}\DecValTok{2}\NormalTok{ <-}\StringTok{ }\KeywordTok{read_csv}\NormalTok{(}\StringTok{'Output_Files/output_1.csv'}\NormalTok{,}
                \DataTypeTok{col_types =} \KeywordTok{list}\NormalTok{(}
                  \DataTypeTok{item =} \KeywordTok{col_character}\NormalTok{(),}
                  \DataTypeTok{item_outcome =} \KeywordTok{col_character}\NormalTok{(),}
@@ -462,50 +744,12 @@
 \end{Highlighting}
 \end{Shaded}
 
-\hypertarget{eda-2}{%
-\subsection{EDA 2}\label{eda-2}}
-
-converting to factor failed in previous step:
+Converting to factor: gender, age group, calcium supplementation and
+reproducing the ealier graph
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{final_dataset }\OperatorTok{%>%}\StringTok{ }\NormalTok{dim}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-## [1] 5489254      16
-\end{verbatim}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{final_dataset }\OperatorTok{%>%}\StringTok{ }\NormalTok{head}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-## # A tibble: 6 x 16
-##   item  item_outcome gender lbw_sg_cat exposed_in item_age_group
-##   <chr> <chr>        <chr>  <chr>      <chr>      <chr>         
-## 1 death neonatal_pr~ male   <NA>       <NA>       early_neonatal
-## 2 death neonatal_pr~ male   <NA>       <NA>       early_neonatal
-## 3 death neonatal_pr~ male   <NA>       <NA>       early_neonatal
-## 4 death neonatal_pr~ male   <NA>       <NA>       early_neonatal
-## 5 death neonatal_pr~ male   <NA>       <NA>       early_neonatal
-## 6 death neonatal_pr~ male   <NA>       <NA>       early_neonatal
-## # ... with 10 more variables: total_population_untracked <dbl>,
-## #   total_population_tracked <dbl>, total_population <dbl>,
-## #   total_population_living <dbl>, total_population_dead <dbl>,
-## #   input_draw <dbl>, random_seed <dbl>, simulation_run_time <dbl>,
-## #   calcium_supplementation_intervention.proportion <chr>, value <dbl>
-\end{verbatim}
-
-\hypertarget{example-of-plot}{%
-\subsection{Example of plot}\label{example-of-plot}}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{final_dataset }\OperatorTok{%>%}\StringTok{ }
+\NormalTok{draft_}\DecValTok{2} \OperatorTok{%>%}\StringTok{ }
 \StringTok{  }\KeywordTok{distinct}\NormalTok{(item_age_group)}
 \end{Highlighting}
 \end{Shaded}
@@ -524,18 +768,42 @@ converting to factor failed in previous step:
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{lbls <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"1_to_4"}\NormalTok{, }\StringTok{"Early neonatal"}\NormalTok{, }\StringTok{"Late neonatal"}\NormalTok{ , }\StringTok{"Post neonatal"}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{final_dataset }\OperatorTok{%>%}\StringTok{ }
+\NormalTok{final_dataset <-}\StringTok{ }\NormalTok{draft_}\DecValTok{2} \OperatorTok{%>%}\StringTok{ }
 \StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{gender =} \KeywordTok{factor}\NormalTok{(gender, }
                          \DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{'Female'}\NormalTok{, }\StringTok{'Male'}\NormalTok{))) }\OperatorTok{%>%}\StringTok{ }
 \StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{age_group =} \KeywordTok{factor}\NormalTok{(item_age_group,}
                                  \DataTypeTok{labels =}\NormalTok{ lbls)) }\OperatorTok{%>%}\StringTok{ }
 \StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{ca_supp =} \KeywordTok{factor}\NormalTok{(calcium_supplementation_intervention.proportion,}
-                          \DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{'NO'}\NormalTok{, }\StringTok{'YES'}\NormalTok{))) }\OperatorTok{%>%}\StringTok{ }
+                          \DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{'NO'}\NormalTok{, }\StringTok{'YES'}\NormalTok{)))}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{saving-final_dataset}{%
+\subsection{Saving final\_dataset:}\label{saving-final_dataset}}
+
+\begin{itemize}
+\tightlist
+\item
+  you can save the file by replacing `Output\_Files/' with the current
+  directory.
+\item
+  can ignore this part {[}saving final\_dataset.csv{]} for space/time
+  sake and just run the rest of the code
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{write_csv}\NormalTok{(final_dataset, }\StringTok{'Output_Files/final_dataset.csv'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{example-of-plot}{%
+\subsection{Example of plot}\label{example-of-plot}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{final_dataset }\OperatorTok{%>%}\StringTok{ }
 \StringTok{  }\KeywordTok{filter}\NormalTok{(item }\OperatorTok{==}\StringTok{'death'}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }
 \StringTok{  }\KeywordTok{filter}\NormalTok{(item_outcome }\OperatorTok{==}\StringTok{ 'neonatal_preterm_birth'}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }
 \StringTok{  }\KeywordTok{filter}\NormalTok{(item_age_group }\OperatorTok{%in%}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{'early_neonatal'}\NormalTok{,}
@@ -544,16 +812,15 @@ converting to factor failed in previous step:
              \DataTypeTok{color =}\NormalTok{ ca_supp,}
              \DataTypeTok{fill =}\NormalTok{ ca_supp))}\OperatorTok{+}
 \StringTok{  }\KeywordTok{geom_density}\NormalTok{(}\DataTypeTok{size =} \DecValTok{1}\NormalTok{, }\DataTypeTok{alpha =} \FloatTok{.3}\NormalTok{)}\OperatorTok{+}
-\StringTok{  }\KeywordTok{facet_wrap}\NormalTok{(gender }\OperatorTok{~}\StringTok{ }\NormalTok{age_group, }\DataTypeTok{scales =} \StringTok{'free'}\NormalTok{,}
-             \DataTypeTok{strip.position =} \StringTok{'bottom'}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{facet_grid}\NormalTok{(gender }\OperatorTok{~}\StringTok{ }\NormalTok{age_group, }\DataTypeTok{scales =} \StringTok{'free'}\NormalTok{)}\OperatorTok{+}
 \StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title =} \StringTok{'Death due to neonatal preterm birth'}\NormalTok{,}
        \DataTypeTok{subtitle =} \StringTok{'By age-group and by gender}\CharTok{\textbackslash{}n\textbackslash{}n}\StringTok{'}\NormalTok{,}
        \DataTypeTok{color =} \StringTok{'Calcium }\CharTok{\textbackslash{}n}\StringTok{Supplementation'}\NormalTok{,}
-       \DataTypeTok{x =} \StringTok{''}\NormalTok{)}\OperatorTok{+}
+       \DataTypeTok{x =} \StringTok{''}\NormalTok{, }\DataTypeTok{y =} \StringTok{''}\NormalTok{)}\OperatorTok{+}
 \StringTok{  }\KeywordTok{guides}\NormalTok{(}\DataTypeTok{fill =} \OtherTok{FALSE}\NormalTok{)}\OperatorTok{+}
 \StringTok{  }\KeywordTok{theme_bw}\NormalTok{()}\OperatorTok{+}
 \StringTok{  }\KeywordTok{scale_color_manual}\NormalTok{(}\DataTypeTok{values =} \KeywordTok{c}\NormalTok{(}\StringTok{'firebrick'}\NormalTok{, }\StringTok{'darkgreen'}\NormalTok{))}\OperatorTok{+}
-\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.position =} \KeywordTok{c}\NormalTok{(.}\DecValTok{9}\NormalTok{,}\FloatTok{1.055}\NormalTok{),}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.position =} \KeywordTok{c}\NormalTok{(.}\DecValTok{9}\NormalTok{,}\FloatTok{1.065}\NormalTok{),}
         \DataTypeTok{legend.direction =} \StringTok{'horizontal'}\NormalTok{,}
         \DataTypeTok{strip.text =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{size =} \DecValTok{10}\NormalTok{),}
         \DataTypeTok{axis.text.y =} \KeywordTok{element_blank}\NormalTok{(),}
@@ -562,6 +829,129 @@ converting to factor failed in previous step:
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{ca_script_1_files/figure-latex/unnamed-chunk-12-1.pdf}
+\begin{center}\includegraphics{ca_script_1_files/figure-latex/unnamed-chunk-14-1} \end{center}
+
+\hypertarget{rerun-draft_2-to-get-final-dataset-for-the-following-steps}{%
+\paragraph{rerun draft\_2 to get final dataset for the following
+steps}\label{rerun-draft_2-to-get-final-dataset-for-the-following-steps}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{final_dataset }\OperatorTok{%>%}\StringTok{ }\KeywordTok{glimpse}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Observations: 5,489,254
+## Variables: 18
+## $ item                                            <chr> "death", "death", "...
+## $ item_outcome                                    <chr> "neonatal_preterm_b...
+## $ gender                                          <fct> Male, Male, Male, M...
+## $ lbw_sg_cat                                      <chr> NA, NA, NA, NA, NA,...
+## $ exposed_in                                      <chr> NA, NA, NA, NA, NA,...
+## $ item_age_group                                  <chr> "early_neonatal", "...
+## $ total_population_untracked                      <dbl> 9623, 9561, 9626, 9...
+## $ total_population_tracked                        <dbl> 12221, 12061, 12081...
+## $ total_population                                <dbl> 21844, 21622, 21707...
+## $ total_population_living                         <dbl> 10853, 10522, 10728...
+## $ total_population_dead                           <dbl> 1368, 1539, 1353, 1...
+## $ input_draw                                      <dbl> 928, 590, 146, 465,...
+## $ random_seed                                     <dbl> 97, 97, 2, 58, 2, 8...
+## $ simulation_run_time                             <dbl> 9960.960, 9948.302,...
+## $ calcium_supplementation_intervention.proportion <chr> "0", "1", "1", "1",...
+## $ value                                           <dbl> 120, 95, 90, 94, 18...
+## $ age_group                                       <fct> Early neonatal, Ear...
+## $ ca_supp                                         <fct> NO, YES, YES, YES, ...
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{final_dataset }\OperatorTok{%>%}\StringTok{ }\NormalTok{head}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 18
+##   item  item_outcome gender lbw_sg_cat exposed_in item_age_group
+##   <chr> <chr>        <fct>  <chr>      <chr>      <chr>         
+## 1 death neonatal_pr~ Male   <NA>       <NA>       early_neonatal
+## 2 death neonatal_pr~ Male   <NA>       <NA>       early_neonatal
+## 3 death neonatal_pr~ Male   <NA>       <NA>       early_neonatal
+## 4 death neonatal_pr~ Male   <NA>       <NA>       early_neonatal
+## 5 death neonatal_pr~ Male   <NA>       <NA>       early_neonatal
+## 6 death neonatal_pr~ Male   <NA>       <NA>       early_neonatal
+## # ... with 12 more variables: total_population_untracked <dbl>,
+## #   total_population_tracked <dbl>, total_population <dbl>,
+## #   total_population_living <dbl>, total_population_dead <dbl>,
+## #   input_draw <dbl>, random_seed <dbl>, simulation_run_time <dbl>,
+## #   calcium_supplementation_intervention.proportion <chr>, value <dbl>,
+## #   age_group <fct>, ca_supp <fct>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{final_dataset }\OperatorTok{%>%}\StringTok{ }\KeywordTok{count}\NormalTok{(item)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 26 x 2
+##    item                                                                        n
+##    <chr>                                                                   <int>
+##  1 death                                                                  2.56e5
+##  2 diarrheal_diseases_event_count                                         4.00e3
+##  3 diarrheal_diseases_prevalent_cases_at_sim_end                          4.00e3
+##  4 hemolytic_disease_and_other_neonatal_jaundice_event_count              4.00e3
+##  5 hemolytic_disease_and_other_neonatal_jaundice_prevalent_cases_at_sim_~ 4.00e3
+##  6 low_birth_weight_and_short_gestation                                   4.64e6
+##  7 lower_respiratory_infections_event_count                               4.00e3
+##  8 lower_respiratory_infections_prevalent_cases_at_sim_end                4.00e3
+##  9 measles_event_count                                                    4.00e3
+## 10 measles_prevalent_cases_at_sim_end                                     4.00e3
+## # ... with 16 more rows
+\end{verbatim}
+
+\hypertarget{crude-death-rate}{%
+\subsubsection{crude death rate:}\label{crude-death-rate}}
+
+I thouhgt this is the way to calculate CDR by first, selecting only
+person\_time rows\ldots{}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{crude_rate <-}\StringTok{ }\NormalTok{final_dataset }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{filter}\NormalTok{(item }\OperatorTok{==}\StringTok{ 'person_time'}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{crude_death_rate_per_100000 =}\NormalTok{ (total_population_dead }\OperatorTok{/}\StringTok{ }\NormalTok{total_population_tracked)}\OperatorTok{*}\StringTok{ }\DecValTok{100000}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{select}\NormalTok{(item, gender, item_age_group,}
+\NormalTok{         total_population_dead, total_population_tracked, }
+\NormalTok{         crude_death_rate_per_}\DecValTok{100000}\NormalTok{, ca_supp)}
+\end{Highlighting}
+\end{Shaded}
+
+..and then try to plot CDR density plot by calcium supp, gender and age
+groups.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{crude_rate }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(crude_death_rate_per_}\DecValTok{100000}\NormalTok{, }
+             \DataTypeTok{color =}\NormalTok{ ca_supp))}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_density}\NormalTok{()}\OperatorTok{+}
+\StringTok{  }\KeywordTok{facet_grid}\NormalTok{(gender }\OperatorTok{~}\StringTok{ }\NormalTok{item_age_group)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme_light}\NormalTok{()}\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_x_continuous}\NormalTok{(}\DataTypeTok{breaks =} \KeywordTok{c}\NormalTok{(}\DecValTok{10000}\NormalTok{, }\DecValTok{12000}\NormalTok{, }\DecValTok{14000}\NormalTok{))}\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_y_continuous}\NormalTok{(}\DataTypeTok{labels =} \KeywordTok{label_number}\NormalTok{())}\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title =} \StringTok{'Crude Death Rate per 100 000'}\NormalTok{,}
+       \DataTypeTok{subtitle =} \StringTok{'By gender and age group'}\NormalTok{,}
+       \DataTypeTok{color =} \StringTok{'Calcium'}\NormalTok{,}
+       \DataTypeTok{x=}\StringTok{''}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{plot.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{size =} \DecValTok{20}\NormalTok{),}
+        \DataTypeTok{axis.text.x =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{angle =} \DecValTok{45}\NormalTok{, }
+                                   \DataTypeTok{hjust =} \DecValTok{1}\NormalTok{),}
+        \DataTypeTok{legend.position =} \StringTok{'bottom'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{ca_script_1_files/figure-latex/unnamed-chunk-19-1.pdf}
 
 \end{document}
