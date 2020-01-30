@@ -3,8 +3,8 @@ title: "ca_supp_1"
 author: "od"
 date: "1/16/2020"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ## Loading required pacakges to laod datasets, manipulate and explore some outputs
@@ -304,6 +304,20 @@ crude_rate %>%
                                    hjust = 1),
         legend.position = 'bottom')
 ```
+
+
+```{r}
+final_dataset %>%
+  filter(item %in% c('death', 'person_time')) %>%
+  group_by(input_draw, ca_supp, item ) %>% 
+  summarise(sum = sum(value)) %>% 
+  spread(item, sum) %>% 
+  mutate(cdr = death / person_time)
+  
+  
+  
+```
+
 
 
 
