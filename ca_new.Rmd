@@ -1,0 +1,272 @@
+---
+title: "ca_new"
+author: "od"
+date: "2/8/2020"
+output:
+  html_document: default
+  keep_tex: yes
+  always_allow_html: true
+  pdf_document: default
+---
+
+### Required packages for laoding dataset, manipulation and exploration:
+
+
+```{r echo=FALSE, message=FALSE}
+library(tidyverse)
+library(patchwork)
+library(skimr)
+library(scales)
+library(knitr)
+library(xtable)
+library(kableExtra)
+library(knitr)
+library(rhdf5)
+```
+
+### Laoding dataset: [output_1.csv]
+
+
+```{r echo=FALSE, message=FALSE}
+draft_2 <- read_csv('Output_Files/output_1.csv',
+               col_types = list(
+                 item = col_character(),
+                 item_outcome = col_character(),
+                 gender = col_character(),
+                 lbw_sg_cat = col_character(),
+                 exposed_in = col_character(),
+                 item_age_group = col_character(),
+                 total_population_untracked = col_double(),
+                 total_population_tracked = col_double(),
+                 total_population = col_double(),
+                 total_population_living = col_double(),
+                 total_population_dead = col_double(),
+                 input_draw = col_double(),
+                 random_seed = col_double(),
+                 simulation_run_time = col_double(),
+                 calcium_supplementation_intervention.proportion = col_character(),
+                 value = col_double()))
+```
+
+
+### Final dataset: Converting columns  [final_dataset.csv]
+
+```{r echo=FALSE}
+lbls <- c("1_to_4", "Early neonatal", "Late neonatal" , "Post neonatal")
+
+final_dataset <- draft_2 %>% 
+  mutate(gender = factor(gender, 
+                         labels = c('Female', 'Male'))) %>% 
+  mutate(age_group = factor(item_age_group,
+                                 labels = lbls)) %>% 
+  mutate(ca_supp = factor(calcium_supplementation_intervention.proportion,
+                          labels = c('NO', 'YES')))
+```
+
+<br>
+<br>
+
+***
+
+<br>
+<br>
+
+## I - Calculating Death Rate for each treatment group:
+
+
+### Table 1.1: Crude death rate: CDR  [crude_death_rate.pdf]
+
+```{r}
+final_dataset %>%
+  filter(item %in% c('death', 'person_time')) %>%
+  group_by(input_draw, ca_supp, item ) %>% 
+  summarise(sum = sum(value)) %>% 
+  spread(item, sum) %>% 
+  mutate(crude_death_rate = death / person_time) %>% 
+  select(-c(death, person_time)) %>% 
+  spread(ca_supp, crude_death_rate) %>% 
+  mutate(Delta = NO - YES) %>% 
+  gather(calcium_supplementation, value, 2:4) %>% 
+  group_by(calcium_supplementation) %>% 
+  summarise(mean_CDR = round(1000 * mean(value),1)) %>% 
+  kable("html") %>% 
+  kable_styling(full_width = F,font_size = 15)
+```
+
+### Table-1.2: Death rate by gender 
+
+```{r}
+final_dataset %>%
+  filter(item %in% c('death', 'person_time')) %>%
+  group_by(input_draw, ca_supp, item , gender) %>% 
+  summarise(sum = sum(value)) %>% 
+  spread(item, sum) %>% 
+  mutate(crude_death_rate = death / person_time) %>% 
+  select(-c(death, person_time)) %>% 
+  spread(ca_supp, crude_death_rate) %>% 
+  mutate(Delta = NO - YES) %>% 
+  gather(calcium_supplementation, value, 3:5) %>% 
+  group_by(gender, calcium_supplementation) %>% 
+  summarise(mean_CDR = round(1000 * mean(value),1)) %>% 
+  kable("html") %>% 
+  kable_styling(full_width = F,font_size = 15)
+```
+
+
+### Table-1.3: Death rate by age groups 
+
+```{r}
+final_dataset %>% 
+  filter(item %in% c('death', 'person_time')) %>%
+  group_by(input_draw, ca_supp, item , age_group) %>% 
+  summarise(sum = sum(value)) %>% 
+  spread(item, sum) %>% 
+  mutate(crude_death_rate = death / person_time) %>% 
+  select(-c(death, person_time)) %>% 
+  spread(ca_supp, crude_death_rate) %>% 
+  mutate(Delta = NO - YES) %>% 
+  gather(calcium_supplementation, value, 3:5) %>% 
+  group_by(age_group, calcium_supplementation) %>% 
+  summarise(mean_CDR = round(1000 * mean(value),1)) %>% 
+  kable("html") %>% 
+  kable_styling(full_width = F,font_size = 15)
+```
+
+
+
+### Table-1.4: Death rate by causes
+
+
+```{r}
+final_dataset %>% 
+  filter(item %in% c('death', 'person_time')) %>%
+  unite(causes, item, item_outcome) %>% 
+  group_by(input_draw, ca_supp, causes) %>% 
+  summarise(sum = sum(value)) %>%
+  spread(causes, sum) %>% 
+  rename(person_time = person_time_NA) %>%
+  gather(causes, value, 3:10) %>%  
+  mutate(crude_death_rate = value / person_time) %>% 
+  select(-c(value, person_time)) %>% 
+  spread(ca_supp, crude_death_rate) %>% 
+  mutate(Delta = NO - YES) %>% 
+  gather(calcium_supplementation, value, 3:5) %>% 
+  group_by(causes, calcium_supplementation) %>% 
+  summarise(mean_CDR = round(1000 * mean(value),1)) %>% 
+  kable("html") %>%
+  kable_styling(full_width = F,font_size = 15)
+```
+
+<br>
+<br>
+
+***
+
+<br>
+<br>
+
+## II - Calculating DALY for each treatment group:
+
+
+#************************************************
+
+DALY (ylls + ylds) by age groups based on calcium supplementation
+
+Reference table from Abie
+
+Ca_Supp |mean_DALY
+--------|--------
+No:     |242598.0
+Yes:    |233372.0
+
+# * * * * * * * * * * * * * * * * * * * * * * * * *
+
+
+### Table-2.1: DALY (ylls + ylds) based on calcium supplementation
+
+```{r}
+final_dataset %>%
+  filter(item %in% c('ylls', 'ylds', 'person_time')) %>% 
+  group_by(input_draw, ca_supp, item) %>% 
+  summarise(value = sum(value)) %>% 
+  spread(item, value) %>% 
+  mutate(total_dalys = ylds + ylls,
+         dalys_per_year = total_dalys / person_time) %>% 
+  select(input_draw, ca_supp, dalys_per_year) %>% 
+  spread(ca_supp, dalys_per_year) %>% 
+  mutate(Delta = NO - YES) %>% 
+  gather(calcium_supplementation, value, 2:4) %>% 
+  group_by(calcium_supplementation) %>% 
+  summarise(mean_Daly = round(100000 * mean(value),0))%>% 
+  kable("html") %>%
+  kable_styling(full_width = F,font_size = 15)
+```
+
+
+### Table-2.2: Daly by gender
+
+```{r}
+final_dataset %>%
+  filter(item %in% c('ylls', 'ylds', 'person_time')) %>% 
+  group_by(input_draw, ca_supp, item, gender) %>% 
+  summarise(value = sum(value)) %>% 
+  spread(item, value) %>% 
+  mutate(total_dalys = ylds + ylls,
+         dalys_per_year = total_dalys / person_time) %>% 
+  select(input_draw, gender, ca_supp, dalys_per_year) %>% 
+  spread(ca_supp, dalys_per_year) %>% 
+  mutate(Delta = NO - YES) %>% 
+  gather(calcium_supplementation, value, 3:5) %>% 
+  group_by(gender, calcium_supplementation) %>% 
+  summarise(mean_Daly = round(100000 * mean(value),0))%>% 
+  kable("html") %>%
+  kable_styling(full_width = F,font_size = 15)
+```
+
+
+### Table-2.3: Daly by age group
+
+```{r}
+final_dataset %>%
+  filter(item %in% c('ylls', 'ylds', 'person_time')) %>% 
+  group_by(input_draw, ca_supp, item, age_group) %>% 
+  summarise(value = sum(value)) %>% 
+  spread(item, value) %>% 
+  mutate(total_dalys = ylds + ylls,
+         dalys_per_year = total_dalys / person_time) %>% 
+  select(input_draw, age_group, ca_supp, dalys_per_year) %>% 
+  spread(ca_supp, dalys_per_year) %>% 
+  mutate(Delta = NO - YES) %>% 
+  gather(calcium_supplementation, value, 3:5) %>% 
+  group_by(age_group, calcium_supplementation) %>% 
+  summarise(mean_Daly = round(100000 * mean(value),0))%>% 
+  kable("html") %>%
+  kable_styling(full_width = F,font_size = 15)
+```
+
+
+### Table-1.4: Daly by causes
+
+```{r}
+final_dataset %>% 
+  filter(item %in% c('ylls', 'ylds', 'person_time')) %>%
+  unite(causes, item, item_outcome) %>% 
+  group_by(input_draw, ca_supp, causes) %>% 
+  summarise(sum = sum(value)) %>%
+  spread(causes, sum) %>% 
+  rename(person_time = person_time_NA) %>% 
+  gather(causes, value, 4:18) %>% 
+  separate(causes, c('type', 'causes'), sep = '_', extra = 'merge') %>%
+  spread(type, value) %>% 
+  mutate(total_dalys = ylds + ylls,
+         dalys_per_year = total_dalys / person_time) %>% 
+  select(input_draw, causes, ca_supp, dalys_per_year) %>% 
+  spread(ca_supp, dalys_per_year) %>% 
+  mutate(Delta = NO - YES) %>% 
+  gather(calcium_supplementation, value, 3:5) %>% 
+  group_by(causes, calcium_supplementation) %>% 
+  summarise(mean_Daly = round(100000 * mean(value),0))%>% 
+  kable("html") %>%
+  kable_styling(full_width = F,font_size = 15)
+```
+
