@@ -2,9 +2,8 @@
 title: "Calcium Supplementation During Pregnancy"
 author: "OD, AF"
 date: "2/8/2020"
-output:
-  html_document: 
-    keep_md: true
+output: rmarkdown::github_document
+always_allow_html: true
 ---
 
 ### Required packages for laoding dataset, manipulation and exploration:
