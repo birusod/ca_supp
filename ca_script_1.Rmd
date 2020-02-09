@@ -14,6 +14,10 @@ library(tidyverse)
 library(patchwork)
 library(skimr)
 library(scales)
+library(knitr)
+library(xtable)
+library(kableExtra)
+library(knitr)
 library(rhdf5)
 ```
 
@@ -201,8 +205,8 @@ draft_2 <- read_csv('Output_Files/output_1.csv',
 Converting to factor: gender, age group, calcium supplementation and reproducing the ealier graph
 
 ```{r}
-draft_2 %>% 
-  distinct(item_age_group)
+#draft_2 %>% 
+#  distinct(item_age_group)
 
 lbls <- c("1_to_4", "Early neonatal", "Late neonatal" , "Post neonatal")
 
@@ -213,7 +217,14 @@ final_dataset <- draft_2 %>%
                                  labels = lbls)) %>% 
   mutate(ca_supp = factor(calcium_supplementation_intervention.proportion,
                           labels = c('NO', 'YES')))
+final_dataset %>% 
+  distinct(age_group)
 
+```
+
+```{r}
+final_dataset %>% 
+  count(age_group) %>% kable()
 ```
 
 
@@ -252,7 +263,7 @@ final_dataset %>%
         plot.title = element_text(face = 'bold', size = 15),
         panel.background = element_rect(colour = 'black'))
 ```
-
+######
 #### rerun draft_2 to get final dataset for the following steps
 
 
@@ -269,42 +280,9 @@ final_dataset %>% count(item)
 ```
 
 
-### crude death rate: 
-
-I thouhgt this is the way to calculate CDR by first, selecting only person_time rows...
 
 
-```{r}
-crude_rate <- final_dataset %>% 
-  filter(item == 'person_time') %>% 
-  mutate(crude_death_rate_per_100000 = (total_population_dead / total_population_tracked)* 100000) %>% 
-  select(item, gender, item_age_group,
-         total_population_dead, total_population_tracked, 
-         crude_death_rate_per_100000, ca_supp)
-
-```
-
-..and then try to plot CDR density plot by calcium supp, gender and age groups. 
-
-```{r}
-crude_rate %>% 
-  ggplot(aes(crude_death_rate_per_100000, 
-             color = ca_supp))+
-  geom_density()+
-  facet_grid(gender ~ item_age_group)+
-  theme_light()+
-  scale_x_continuous(breaks = c(10000, 12000, 14000))+
-  scale_y_continuous(labels = label_number())+
-  labs(title = 'Crude Death Rate per 100 000',
-       subtitle = 'By gender and age group',
-       color = 'Calcium',
-       x='')+
-  theme(plot.title = element_text(size = 20),
-        axis.text.x = element_text(angle = 45, 
-                                   hjust = 1),
-        legend.position = 'bottom')
-```
-
+Table-1: Distribution of death rate based on calcium supplementation
 
 ```{r}
 final_dataset %>%
@@ -312,14 +290,195 @@ final_dataset %>%
   group_by(input_draw, ca_supp, item ) %>% 
   summarise(sum = sum(value)) %>% 
   spread(item, sum) %>% 
-  mutate(cdr = death / person_time)
-  
-  
-  
+  mutate(crude_death_rate = death / person_time) %>% 
+  group_by(ca_supp) %>%
+  summarise(cdr = round(1000* mean (crude_death_rate),1))
+```
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Calculating Death Rate for each trreatment group:
+
+
+# Table 1: Crude death rate: CDR  [crude_death_rate.pdf]
+
+```{r}
+final_dataset %>%
+  filter(item %in% c('death', 'person_time')) %>%
+  group_by(input_draw, ca_supp, item ) %>% 
+  summarise(sum = sum(value)) %>% 
+  spread(item, sum) %>% 
+  mutate(crude_death_rate = death / person_time) %>% 
+  select(-c(death, person_time)) %>% 
+  spread(ca_supp, crude_death_rate) %>% 
+  mutate(Delta = NO - YES) %>% 
+  gather(calcium_supplementation, value, 2:4) %>% 
+  group_by(calcium_supplementation) %>% 
+  summarise(mean_CDR = round(1000 * mean(value),1)) 
+#save_kable('Output_Files/kbl_aa.png')
+#kable("html") %>% kable_styling('striped', full_width = F, 
+#                                  stripe_color = 'red', font_size = 15)
+```
+
+Table-2: Death rate by gender 
+
+```{r}
+final_dataset %>%
+  filter(item %in% c('death', 'person_time')) %>%
+  group_by(input_draw, ca_supp, item , gender) %>% 
+  summarise(sum = sum(value)) %>% 
+  spread(item, sum) %>% 
+  mutate(crude_death_rate = death / person_time) %>% 
+  select(-c(death, person_time)) %>% 
+  spread(ca_supp, crude_death_rate) %>% 
+  mutate(Delta = NO - YES) %>% 
+  gather(calcium_supplementation, value, 3:5) %>% 
+  group_by(gender, calcium_supplementation) %>% 
+  summarise(mean_CDR = round(1000 * mean(value),1)) %>% 
+  kable("html") %>% kable_styling('striped', full_width = F, 
+                                  stripe_color = 'red', font_size = 15)
+#save_kable('Output_Files/kbl_aa.png')
+```
+
+
+Table-3: Death rate by age groups 
+
+```{r}
+final_dataset %>% 
+  filter(item %in% c('death', 'person_time')) %>%
+  group_by(input_draw, ca_supp, item , age_group) %>% 
+  summarise(sum = sum(value)) %>% 
+  spread(item, sum) %>% 
+  mutate(crude_death_rate = death / person_time) %>% 
+  select(-c(death, person_time)) %>% 
+  spread(ca_supp, crude_death_rate) %>% 
+  mutate(Delta = NO - YES) %>% 
+  gather(calcium_supplementation, value, 3:5) %>% 
+  group_by(age_group, calcium_supplementation) %>% 
+  summarise(mean_CDR = round(1000 * mean(value),1)) %>% 
+  kable("html") %>% kable_styling('striped', full_width = F, 
+                                  stripe_color = 'red', font_size = 15)
+#save_kable('Output_Files/kbl_aa.png')
 ```
 
 
 
+Table-4: Death rate by causes
+
+```{r}
+final_dataset %>% 
+  filter(item %in% c('death', 'person_time')) %>%
+  unite(causes, item, item_outcome) %>% 
+  group_by(input_draw, ca_supp, causes) %>% 
+  summarise(sum = sum(value)) %>%
+  spread(causes, sum) %>% 
+  rename(person_time = person_time_NA) %>%
+  gather(causes, value, 3:10) %>% 
+  mutate(causes = str_remove(causes, 'death_')) %>% 
+  mutate(crude_death_rate = value / person_time) %>% 
+  select(-c(value, person_time)) %>% 
+  spread(ca_supp, crude_death_rate) %>% 
+  mutate(Delta = NO - YES) %>% 
+  gather(calcium_supplementation, value, 3:5) %>% 
+  group_by(causes, calcium_supplementation) %>%  
+  summarise(mean_CDR = round(1000 * mean(value),1)) %>% 
+  kable("html") %>% kable_styling('striped', full_width = F, 
+                                  stripe_color = 'red', font_size = 15)
+```
+
+```{r}
+final_dataset %>%  count(item)
+```
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Calculating DALY for each trreatment group:
+
+
+# ************************************************
+
+Reference table from Abie
+No:   242598.0
+Yes:  233372.0
+
+# * * * * * * * * * * * * * * * * * * * * * * * * *
+
+
+
+Table-3: DALY (ylls + ylds) by age groups based on calcium supplementation
+
+```{r}
+final_dataset %>%
+  filter(item %in% c('ylls', 'ylds', 'person_time')) %>% 
+  group_by(input_draw, ca_supp, item) %>% 
+  summarise(value = sum(value)) %>% 
+  spread(item, value) %>% 
+  mutate(total_dalys = ylds + ylls,
+         dalys_per_year = total_dalys / person_time) %>% 
+  select(input_draw, ca_supp, dalys_per_year) %>% 
+  spread(ca_supp, dalys_per_year) %>% 
+  mutate(Delta = NO - YES) %>% 
+  gather(calcium_supplementation, value, 2:4) %>% 
+  group_by(calcium_supplementation) %>% 
+  summarise(mean_Daly = round(100000 * mean(value),0))
+   
+```
+
+
+
+```{r}
+final_dataset %>%
+  filter(item %in% c('ylls', 'ylds', 'person_time')) %>% 
+  group_by(input_draw, ca_supp, item, gender) %>% 
+  summarise(value = sum(value)) %>% 
+  spread(item, value) %>% 
+  mutate(total_dalys = ylds + ylls,
+         dalys_per_year = total_dalys / person_time)  %>% 
+  select(input_draw, gender, ca_supp, dalys_per_year) %>% 
+  spread(ca_supp, dalys_per_year) %>% 
+  mutate(Delta = NO - YES) %>% 
+  gather(calcium_supplementation, value, 3:5) %>% 
+  group_by(gender, calcium_supplementation) %>% 
+  summarise(mean_Daly = round(100000 * mean(value),0))
+```
+
+
+```{r}
+final_dataset %>%
+  filter(item %in% c('ylls', 'ylds', 'person_time')) %>% 
+  group_by(input_draw, ca_supp, item, age_group) %>% 
+  summarise(value = sum(value)) %>% 
+  spread(item, value) %>% 
+  mutate(total_dalys = ylds + ylls,
+         dalys_per_year = total_dalys / person_time)%>% 
+  select(input_draw, age_group, ca_supp, dalys_per_year)%>% 
+  spread(ca_supp, dalys_per_year) %>% 
+  mutate(Delta = NO - YES) %>% 
+  gather(calcium_supplementation, value, 3:5) %>% 
+  group_by(age_group, calcium_supplementation) %>% 
+  summarise(mean_Daly = round(100000 * mean(value),0))
+```
+
+
+```{r}
+final_dataset %>% 
+  filter(item %in% c('ylls', 'ylds', 'person_time')) %>%
+  unite(causes, item, item_outcome) %>% 
+  group_by(input_draw, ca_supp, causes) %>% 
+  summarise(sum = sum(value)) %>%
+  spread(causes, sum) %>% 
+  rename(person_time = person_time_NA) %>% 
+  gather(causes, value, 4:18) %>% 
+  separate(causes, c('type', 'causes'), sep = '_', extra = 'merge') %>% 
+  spread(type, value) %>% 
+  mutate(total_dalys = ylds + ylls,
+         dalys_per_year = total_dalys / person_time) %>% 
+  select(input_draw, causes, ca_supp, dalys_per_year) %>% 
+  spread(ca_supp, dalys_per_year) %>% 
+  mutate(Delta = NO - YES) %>% 
+  gather(calcium_supplementation, value, 3:5) %>% 
+  group_by(causes, calcium_supplementation) %>% 
+  summarise(mean_Daly = round(100000 * mean(value),0))
+  
+```
 
 
 
