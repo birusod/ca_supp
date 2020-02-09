@@ -3,7 +3,8 @@ title: "ca_new"
 author: "od"
 date: "2/8/2020"
 output:
-  html_document: default
+  html_document: 
+    keep_md: true
   keep_tex: yes
   always_allow_html: true
   pdf_document: default
