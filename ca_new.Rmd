@@ -1,13 +1,10 @@
 ---
-title: "ca_new"
-author: "od"
+title: "Calcium Supplementation During Pregnancy"
+author: "OD, AF"
 date: "2/8/2020"
 output:
   html_document: 
     keep_md: true
-  keep_tex: yes
-  always_allow_html: true
-  pdf_document: default
 ---
 
 ### Required packages for laoding dataset, manipulation and exploration:
@@ -24,7 +21,7 @@ library(kableExtra)
 library(knitr)
 library(rhdf5)
 ```
-
+##### Code hidden
 ### Laoding dataset: [output_1.csv]
 
 
@@ -49,6 +46,7 @@ draft_2 <- read_csv('Output_Files/output_1.csv',
                  value = col_double()))
 ```
 
+##### Code hidden
 
 ### Final dataset: Converting columns  [final_dataset.csv]
 
@@ -63,6 +61,7 @@ final_dataset <- draft_2 %>%
   mutate(ca_supp = factor(calcium_supplementation_intervention.proportion,
                           labels = c('NO', 'YES')))
 ```
+##### Code hidden
 
 <br>
 <br>
@@ -102,13 +101,13 @@ final_dataset %>%
   group_by(input_draw, ca_supp, item , gender) %>% 
   summarise(sum = sum(value)) %>% 
   spread(item, sum) %>% 
-  mutate(crude_death_rate = death / person_time) %>% 
+  mutate(death_rate = death / person_time) %>% 
   select(-c(death, person_time)) %>% 
-  spread(ca_supp, crude_death_rate) %>% 
+  spread(ca_supp, death_rate) %>% 
   mutate(Delta = NO - YES) %>% 
   gather(calcium_supplementation, value, 3:5) %>% 
   group_by(gender, calcium_supplementation) %>% 
-  summarise(mean_CDR = round(1000 * mean(value),1)) %>% 
+  summarise(mean_death_rate = round(1000 * mean(value),1)) %>% 
   kable("html") %>% 
   kable_styling(full_width = F,font_size = 15)
 ```
@@ -122,13 +121,13 @@ final_dataset %>%
   group_by(input_draw, ca_supp, item , age_group) %>% 
   summarise(sum = sum(value)) %>% 
   spread(item, sum) %>% 
-  mutate(crude_death_rate = death / person_time) %>% 
+  mutate(death_rate = death / person_time) %>% 
   select(-c(death, person_time)) %>% 
-  spread(ca_supp, crude_death_rate) %>% 
+  spread(ca_supp, death_rate) %>% 
   mutate(Delta = NO - YES) %>% 
   gather(calcium_supplementation, value, 3:5) %>% 
   group_by(age_group, calcium_supplementation) %>% 
-  summarise(mean_CDR = round(1000 * mean(value),1)) %>% 
+  summarise(mean_death_rate = round(1000 * mean(value),1)) %>% 
   kable("html") %>% 
   kable_styling(full_width = F,font_size = 15)
 ```
@@ -147,13 +146,13 @@ final_dataset %>%
   spread(causes, sum) %>% 
   rename(person_time = person_time_NA) %>%
   gather(causes, value, 3:10) %>%  
-  mutate(crude_death_rate = value / person_time) %>% 
+  mutate(death_rate = value / person_time) %>% 
   select(-c(value, person_time)) %>% 
-  spread(ca_supp, crude_death_rate) %>% 
+  spread(ca_supp, death_rate) %>% 
   mutate(Delta = NO - YES) %>% 
   gather(calcium_supplementation, value, 3:5) %>% 
   group_by(causes, calcium_supplementation) %>% 
-  summarise(mean_CDR = round(1000 * mean(value),1)) %>% 
+  summarise(mean_death_rate = round(1000 * mean(value),1)) %>% 
   kable("html") %>%
   kable_styling(full_width = F,font_size = 15)
 ```
